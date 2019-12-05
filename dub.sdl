@@ -1,0 +1,5 @@
+name "python-dpp-nanomsg"
+targetType "dynamicLibrary"
+dependency "autowrap:pynih" path="/home/atila/kaleidic/autowrap"
+preGenerateCommands "make -C $PACKAGE_DIR source/nanomsg.d"
+libs "nanomsg"

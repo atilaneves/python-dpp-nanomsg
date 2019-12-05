@@ -1,0 +1,6 @@
+*.so
+*.o
+source/nanomsg.d
+*.pyc
+.dub
+.pytest_cache

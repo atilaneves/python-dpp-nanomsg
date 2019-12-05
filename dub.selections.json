@@ -1,0 +1,8 @@
+{
+	"fileVersion": 1,
+	"versions": {
+		"autowrap": "0.5.1",
+		"mirror": "0.1.6",
+		"unit-threaded": "0.10.4"
+	}
+}
