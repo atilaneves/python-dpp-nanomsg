@@ -1,11 +1,17 @@
-dub_dir := $(HOME)/.dub/packages
+dmd_version = 2.089.0
+dlang_dir := $(HOME)/dlang
+dmd_dir := $(dlang_dir)/dmd-$(dmd_version)
+dub := $(dmd_dir)/linux/bin64/dub
+dmd := $(dmd_dir)/linux/bin64/dmd
+activate := $(dmd_dir)/activate
+dub_pkgs_dir := $(HOME)/.dub/packages
 dpp_version := 0.4.0
-dpp_pkg_dir := $(dub_dir)/dpp-$(dpp_version)
+dpp_pkg_dir := $(dub_pkgs_dir)/dpp-$(dpp_version)
 dpp_lock := $(dpp_pkg_dir)/dpp.lock
 dpp_dir := $(dpp_pkg_dir)/dpp
 dpp := $(dpp_dir)/bin/d++
 autowrap_version := 0.5.1
-autowrap_dir := $(dub_dir)/autowrap-$(autowrap_version)/autowrap
+autowrap_dir := $(dub_pkgs_dir)/autowrap-$(autowrap_version)/autowrap
 autowrap_pynih_dir := $(autowrap_dir)/pynih
 autowrap_pynih_raw_dpp := $(autowrap_pynih_dir)/source/python/raw.dpp
 autowrap_pynih_raw_d := $(autowrap_pynih_dir)/source/python/raw.d
@@ -20,20 +26,30 @@ test: nanomsg.so
 nanomsg.so: libpython-dpp-nanomsg.so
 	cp $< $@
 
-libpython-dpp-nanomsg.so: source/nanomsg.d $(autowrap_pynih_raw_d)
-	dub build -q
+libpython-dpp-nanomsg.so: source/nanomsg.d $(autowrap_pynih_raw_d) $(dub)
+	$(dub) build -q
 
 source/nanomsg.d: source/nanomsg.dpp $(dpp)
 	$(dpp) --preprocess-only --include-path $(PYTHON_INCLUDE_DIR) source/nanomsg.dpp
 
-$(dpp): $(dpp_lock) $(autowrap_pynih_raw)
-	cd $(dpp_dir) && dub build -q
+$(dpp): $(dpp_lock) $(autowrap_pynih_raw) $(dub)
+	cd $(dpp_dir) && $(dub) build -q --compiler=$(dmd)
 
-$(dpp_lock):
-	dub fetch dpp --version=$(dpp_version)
+$(dpp_lock): $(dub)
+	$(dub) fetch dpp --version=$(dpp_version)
 
 $(autowrap_pynih_raw_d): $(autowrap_pynih_raw_dpp)
 	make -C $(autowrap_pynih_dir) source/python/raw.d
 
-$(autowrap_pynih_raw_dpp):
-	dub fetch autowrap --version=$(autowrap_version)
+$(autowrap_pynih_raw_dpp): $(dub)
+	$(dub) fetch autowrap --version=$(autowrap_version)
+
+$(dub): $(dlang_dir)/install.sh
+	$< dmd-$(dmd_version)
+
+$(dlang_dir)/install.sh: $(dlang_dir)
+	cd $(dlang_dir) && curl -fsS https://dlang.org/install.sh -o $@
+	chmod +x $@
+
+$(dlang_dir):
+	mkdir -p $@
